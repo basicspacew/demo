@@ -1,29 +1,27 @@
 defmodule DemoWeb.SelectExampleLive do
   use DemoWeb, :live_view
+  alias Phoenix.LiveView.JS
 
   def mount(_params, _session, socket) do
-    socket =
-      socket
-    |> assign(source: nil, target: nil, next: nil, show_target: false, form: to_form(changeset(), as: :form))
-    {:ok, socket}
+    {:ok, reset_assigns(socket)}
   end
 
   def render(assigns) do
     ~H"""
     <.simple_form
         for={@form}
-        id="user-form"
+        id="form"
         phx-change="change"
         phx-submit="submit"
       >
-      <.input  field={@form[:source]} value={@source} />
-      <.input  field={@form[:source]} value={@source} type="select" options={src_opts()} label="Source" prompt="Select One"/>
+      <.input id="source2" name="source2" value={@source} />
+      <.input field={@form[:source]} value={@source} type="select" options={src_opts()} label="Source" prompt="Select One"/>
       <div :if={true}>
-        <.input  field={@form[:target]} value={@target} type="select" options={target_opts()} label="Target" prompt="Select Two"/>
+        <.input field={@form[:target]} value={@target} type="select" options={target_opts()} label="Target" prompt="Select Two"/>
       </div>
-      <.input  field={@form[:next]} value={@next} type="select" options={src_opts()} label="Next" prompt="Select Three"/>
+      <.input field={@form[:next]} value={@next} type="select" options={src_opts()} label="Next" prompt="Select Three"/>
 
-      <.button type="submit" phx-disable-with="Saving...">Save</.button>
+      <.button onClick="this.form.reset()">Save</.button>
     </.simple_form>
     """
   end
@@ -40,7 +38,7 @@ defmodule DemoWeb.SelectExampleLive do
     end
 
     def handle_event("submit", %{"form" => params}, socket) do
-      IO.inspect(params, label: "submitted_params")
+      IO.inspect(socket)
       {:noreply, reset_assigns(socket)}
     end
 
@@ -51,7 +49,15 @@ defmodule DemoWeb.SelectExampleLive do
     end
 
     def reset_assigns(socket) do
-      assign(socket, %{source: nil, target: nil, next: nil, show_target: false, form: to_form(changeset(), as: :form) })
+      socket
+      |> assign(
+          source: nil,
+          target: nil,
+          next: nil,
+          show_target: false,
+          form: to_form(changeset(), as: :form),
+          id: "form#{DateTime.utc_now() |> DateTime.to_unix()}"
+        )
     end
 
     def src_opts() do
